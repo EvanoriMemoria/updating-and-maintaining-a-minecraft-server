@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\usepackage{hyperref}
+
 \title{Updating and Maintaining a Minecraft Server}
 \author{Nicholas Rust}
 \date{\today}
@@ -29,7 +31,26 @@ Open eula.txt and change false to true indicating you have read the Mojang eula 
 
 \subsection{Port Forwarding and Firewall}
 
-\subsection{SSH}
+\subsubsection{Uncomplicated Firewall (ufw)}
+
+sudo apt install ufw
+
+For IPv6 go to:
+sudo nano /etc/default/ufw
+
+IPV6=yes\\
+
+sudo ufw allow [port]
+
+sudo ufw enable
+
+More detailed information can be found here:
+\url{https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-debian-9}
+
+\subsubsection{SSH}
+Using ufw you can allow ssh connections with the command
+
+sudo ufw allow 22
 
 \section{Updating to the Latest Version of a Modpack}
 
