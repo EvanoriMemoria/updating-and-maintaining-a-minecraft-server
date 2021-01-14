@@ -1,8 +1,8 @@
 \documentclass{article}
 
-\usepackage{hyperref}
+\usepackage[colorlinks=true, linkcolor=blue]{hyperref} %hyper references 
 
-\title{Updating and Maintaining a Minecraft Server}
+\title{Updating and Maintaining a Modded Minecraft Server Running Debian 8.3.0}
 \author{Nicholas Rust}
 \date{\today}
 
@@ -10,49 +10,138 @@
 
 \maketitle
 
-\tableofcontents
+%table of contents, centered with black links
+{\hypersetup{linkcolor=black}
+	\centering
+	\tableofcontents
+}
 
 \pagebreak
 
-\section{Basic Setup (Debian)}
-For access to the minecraft terminals:
-apt-get install screen 
+\section{Creating a Fresh Server}
 
-\subsection{Create a minecraft group and user}
+\subsection{Setting Up the System}
+If you have recently completed a fresh install of Debian 8.3.0 then continue from here, otherwise skip this section and move to \hyperref[sec:NotFresh]{The System is Set Up}. As this document is aimed at the minecraft server management and updating I will not go into detail about setting up the system but will instead provide other resources I found to be helpful.
 
-\subsection{Upload and Configure Server Files}
+\subsubsection{Create A Minecraft User}
 
-\subsubsection{eula.txt}
-Open eula.txt and change false to true indicating you have read the Mojang eula and agree to it. The server will not start if this is not set to true.
+(Link to how to create a minecraft user)
 
-\subsubsection{server.properties}
+\subsubsection{Port Forward}
 
-\subsubsection{configs}
+(link to how to port forward)
 
-\subsection{Port Forwarding and Firewall}
+\subsubsection{Check your Firewall (ufw)}
 
-\subsubsection{Uncomplicated Firewall (ufw)}
-
-sudo apt install ufw
-
-For IPv6 go to:
-sudo nano /etc/default/ufw
-
-IPV6=yes\\
-
-sudo ufw allow [port]
+sudo ufw allow [port] (default: 25565)
 
 sudo ufw enable
 
 More detailed information can be found here:
 \url{https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-debian-9}
 
-\subsubsection{SSH}
-Using ufw you can allow ssh connections with the command
+\subsubsection{Systemd and Timers}
 
-sudo ufw allow 22
+\label{sec:NotFresh}
+\subsection{The System is Set Up}
 
-\section{Updating to the Latest Version of a Modpack}
+\section{Modded Server Update}
+
+\subsection{Upload and Configure Server Files}
+
+\subsection{Common Crash: eula.txt}
+Open eula.txt and change false to true indicating you have read the Mojang eula and agree to it. The server will not start if this is not set to true.
+
+\subsection{Common Crash: session.lock}
+Delete the file /world/session.lock
+
+This file locks the world, preventing the server from starting up using this world. This file may not always exist. If it does not exist it will not cause a problem.
+
+\subsection{server.properties}
+Be sure the server-port is what you forwarded. The default minecraft port is 25565. This only really starts to matter if you're running more than one server.
+
+\subsection{configs}
+I've found config manipulation to be a big part of modded minecraft server management. Be familiar with the configs and spend some time looking through them.
+
+\subsection{Updating to the Latest Version of a Modpack}
+
+\subsubsection{Create a new directory with the new files}
+Be sure not to just delete your old directory and throw the new one in, it is very likely we want to save some of the files.
+
+\subsubsection{Copy all needed directories and files.}
+\begin{enumerate}
+	\item /world/ (if you want to keep the world)
+	\item /backups/ (if you want the world backups as well)
+	\item /server.properties
+	\item /banned-players.json
+	\item /banned-ips.json
+\end{enumerate}
+
+\subsubsection{plugin directories}
+\begin{enumerate}
+	\item /luckperms
+	\item /nucleus
+\end{enumerate}
+
+\subsubsection{plugin .jar files}
+These .jar files will generate all of their configs if this is the first time adding them to the server.
+\begin{enumerate}
+	\item /mods/aaaa\_spongeforge-Version.jar
+	\item /mods/CatClearLag-Version.jar
+	\item /mods/FTBBackups-Version.jar
+	\item /mods/griefprevention-Version.jar
+	\item /mods/LuckPerms-Version.jar
+	\item /mods/Nucleus-Version.jar
+	\item /mods/TotalEconomy-Version.jar
+\end{enumerate}
+
+\subsubsection{plugin configs}
+We need these since we have edited them to suit our server and regenerating them based on the jar would revert them to default.
+\begin{enumerate}
+	\item /config/catclearlag
+	\item /config/ftbbackups
+	\item /config/griefprevention
+	\item /config/luckperms
+	\item /config/nucleus
+	\item /config/sponge
+	\item /config/totaleconomy
+\end{enumerate}
+
+\subsection{Give the folder the correct permissions:}
+sudo chown -R minecraft:minecraft Eternal
+
+\subsection{How to view the minecraft terminal using screen}
+
+\begin{enumerate}
+	\item sudo su minecraft   (to enter the minecraft user)
+	\item screen -ls		  (list active screen IDNUMBERS and what they are linked to)
+	\item screen -r IDNUMBER  (connect to a screen)
+\end{enumerate}
+ 
+ 
+\subsection{If your IP address changes}
+
+sudo dig beartooth.bendy.cool
+
+sudo ddclient
+
+
+WORLD RESET
+Nucleus userdata Homes
+totaleconomy money
+griefprevention claims
+
+LAG FINDER
+/debug start
+wait time
+/debug stop
+
+sponge disable world
+
+/spawnpoint (playername)  (x, y, z)
+/give fergenbergel contenttweaker:spawn\_scroll
+
+
 
 \subsection{World Wipe}
 
