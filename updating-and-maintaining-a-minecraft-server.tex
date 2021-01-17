@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage[colorlinks=true, linkcolor=blue]{hyperref} %hyper references 
 
@@ -18,97 +18,115 @@
 
 \pagebreak
 
-\section{Creating a Fresh Server}
+This document assumes the following:
+\begin{itemize}
+	\item You have a Debian 8.3.0 system set up to run minecraft. 
+	\item You are setting up a modded minecraft survival server.
+	\item You have some command line experience.
+\end{itemize}
 
-\subsection{Setting Up the System}
-If you have recently completed a fresh install of Debian 8.3.0 then continue from here, otherwise skip this section and move to \hyperref[sec:NotFresh]{The System is Set Up}. As this document is aimed at the minecraft server management and updating I will not go into detail about setting up the system but will instead provide other resources I found to be helpful.
+\chapter{Updating Your Modded Server}
 
-\subsubsection{Create A Minecraft User}
+\section{Upload the Server Pack}
+The following commands will:
+\begin{enumerate}
+	\item Install the unzip package. Skip if you already have it or an alternative. 
+	\item Move newserverpack.zip to /opt/minecraft directory.
+	\item Unzip the serverpack.
+	\item Set the minecraft user as the owner of the directory.
+\end{enumerate}
 
-(Link to how to create a minecraft user)
+\begin{verbatim}
+	sudo apt install unzip 
+	mv newserverpack.zip /opt/minecraft/
+	unzip /opt/minecraft/newserverpack.zip
+	sudo chown -R minecraft:minecraft opt/minecraft/newserverpack/
+\end{verbatim}
 
-\subsubsection{Port Forward}
+\section{Configure eula.txt}
+Open eula.txt and change "false" to "true" indicating you have read the Mojang End User License Agreement and agree to it. The server will not start if this is not set to true.
 
-(link to how to port forward)
-
-\subsubsection{Check your Firewall (ufw)}
-
-sudo ufw allow [port] (default: 25565)
-
-sudo ufw enable
-
-More detailed information can be found here:
-\url{https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-debian-9}
-
-\subsubsection{Systemd and Timers}
-
-\label{sec:NotFresh}
-\subsection{The System is Set Up}
-
-\section{Modded Server Update}
-
-\subsection{Upload and Configure Server Files}
-
-\subsection{Common Crash: eula.txt}
-Open eula.txt and change false to true indicating you have read the Mojang eula and agree to it. The server will not start if this is not set to true.
-
-\subsection{Common Crash: session.lock}
-Delete the file /world/session.lock
+\section{Delete session.lock}
+Delete the file oldserverpack/world/session.lock if it exists.
 
 This file locks the world, preventing the server from starting up using this world. This file may not always exist. If it does not exist it will not cause a problem.
 
-\subsection{server.properties}
-Be sure the server-port is what you forwarded. The default minecraft port is 25565. This only really starts to matter if you're running more than one server.
+\section{Copy All Modified Directories and Files}
+Use the cp (copy) command to duplicate and place the old directories you wish to keep into the newserverpack.
 
-\subsection{configs}
-I've found config manipulation to be a big part of modded minecraft server management. Be familiar with the configs and spend some time looking through them.
+\textbf{Remember:} Tab completion works with the following commands.
 
-\subsection{Updating to the Latest Version of a Modpack}
+\begin{verbatim}
+	cd /opt/minecraft/oldserverpack/
+	cp -tr ../newserverpack/ world backups server.properties
+	 banned-players.json banned-ips.json 
+\end{verbatim}
+
+\subsection{Copy Plugin Directories}
+\begin{verbatim}
+	cp -tr ../newserverpack/ luckperms/ nucleus/
+\end{verbatim}
+
+\subsection{Copy Plugin .jar Files}
+These .jar files will generate all of their configs if this is the first time adding them to the server.
+
+\subsubsection*{Move into the mods directory.}
+
+\begin{verbatim}
+	cd /opt/minecraft/oldserverpack/mods/
+\end{verbatim}
+
+\subsubsection*{Generic Example:}
+
+\begin{verbatim}
+	cp -tr ../../newserverpack/mods/ file1.jar file2.jar file3.jar 
+\end{verbatim}
+
+\subsubsection*{Real Example:}
+
+\begin{verbatim}
+	cp -tr ../../rebirth_of_the_night/mods/ 0spongeforge-Version.jar
+	 CatClearLag-Version.jar FTBBackups-Version.jar griefprevention-Version.jar
+	 LuckPerms-Version.jar Nucleus-Version.jar TotalEconomy-Version.jar
+\end{verbatim}
+
+\subsection{Copy Plugin Configuration Files}
+We need these since we have edited them to suit our server and regenerating them based on the jar would revert them to default.
+
+\subsubsection*{Move into the config directory.}
+
+\begin{verbatim}
+	cd /opt/minecraft/oldserverpack/config/
+\end{verbatim}
+
+\subsubsection*{Generic Example:}
+
+\begin{verbatim}
+	cp -tr ../../newserverpack/config directory1/ config1.cfg directory2/
+\end{verbatim}
+
+\subsubsection*{Real Example:}
+
+\begin{verbatim}
+	cp -tr ../../rebirth_of_the_night/config catclearlag/ ftbbackups.cfg
+	 griefprevention/ luckperms/ nucleus/ sponge/ totaleconomy/
+\end{verbatim}
+
+\subsection{Update Plugins (optional)}
+Since most server packs do not come with their plugins pre-installed you will have to update them yourself. This step is not always necessary but can be helpful in avoiding bugs. Download the new version of the .jar and replace the old one in the newserverpack/mods directory. It is still recommended to copy over the configs as their use seldomly changes between plugin versions.
+
+\subsection{Configure server.properties}
+Here is a link to the \href{https://minecraft.gamepedia.com/Server.properties}{minecraft wikipedia} (\url{https://minecraft.gamepedia.com/Server.properties}) page for the server.properties file. The key can be a great resource if you want to read up on specific options. Ideally nothing will need to change for a modpack update.
+
+\subsection{Configure configs}
+I have found config manipulation to be a big part of modded minecraft server management. Be familiar with the configs and spend some time looking through them. These vary so significantly by various modpack I cannot go into specifics in this document. Explore and do some tests.\\
+
+\textbf{Note:} While you may be able to change these while the server is running, a server restart will be required before they take effect in game.
 
 \subsubsection{Create a new directory with the new files}
 Be sure not to just delete your old directory and throw the new one in, it is very likely we want to save some of the files.
 
-\subsubsection{Copy all needed directories and files.}
-\begin{enumerate}
-	\item /world/ (if you want to keep the world)
-	\item /backups/ (if you want the world backups as well)
-	\item /server.properties
-	\item /banned-players.json
-	\item /banned-ips.json
-\end{enumerate}
 
-\subsubsection{plugin directories}
-\begin{enumerate}
-	\item /luckperms
-	\item /nucleus
-\end{enumerate}
-
-\subsubsection{plugin .jar files}
-These .jar files will generate all of their configs if this is the first time adding them to the server.
-\begin{enumerate}
-	\item /mods/aaaa\_spongeforge-Version.jar
-	\item /mods/CatClearLag-Version.jar
-	\item /mods/FTBBackups-Version.jar
-	\item /mods/griefprevention-Version.jar
-	\item /mods/LuckPerms-Version.jar
-	\item /mods/Nucleus-Version.jar
-	\item /mods/TotalEconomy-Version.jar
-\end{enumerate}
-
-\subsubsection{plugin configs}
-We need these since we have edited them to suit our server and regenerating them based on the jar would revert them to default.
-\begin{enumerate}
-	\item /config/catclearlag
-	\item /config/ftbbackups
-	\item /config/griefprevention
-	\item /config/luckperms
-	\item /config/nucleus
-	\item /config/sponge
-	\item /config/totaleconomy
-\end{enumerate}
-
-\subsection{Give the folder the correct permissions:}
-sudo chown -R minecraft:minecraft Eternal
 
 \subsection{How to view the minecraft terminal using screen}
 
