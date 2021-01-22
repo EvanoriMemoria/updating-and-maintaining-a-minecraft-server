@@ -1,9 +1,37 @@
 \documentclass{report}
 
+\usepackage{titlesec}								   %Change the formatting of chapters
+\usepackage[dvipsnames]{xcolor}						   %More colors
+\usepackage{tikz}      								   %Graphs and charts
+\usepackage[framemethod=tikz, nobreak=true]{mdframed}  %Text boxes for notes
+\usepackage[T1]{fontenc}							   %For modern font support
+\usepackage{lmodern}								   %Latin modern font
 \usepackage[colorlinks=true, linkcolor=blue]{hyperref} %hyper references 
 
+\mdfdefinestyle{Code}{
+	frametitle=Command Line,
+	frametitlerule=true,
+	outerlinewidth=1pt, outerlinecolor=White,%
+	middlelinewidth=1pt, middlelinecolor=Black,%
+	backgroundcolor=Black!10,
+	frametitlebackgroundcolor=Gray!50,
+}
+
+\mdfdefinestyle{Note}{
+	frametitle=Note:,
+	frametitlerule=true,
+	middlelinecolor=NavyBlue,
+	middlelinewidth=1pt,
+	backgroundcolor=Black!15,
+	frametitlebackgroundcolor=NavyBlue!30,
+	roundcorner=5pt
+}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries}{}{0pt}{\LARGE}
+
 \title{Updating and Maintaining a Modded Minecraft Server Running Debian 8.3.0}
-\author{Nicholas Rust}
+\author{fergenbergel}
 \date{\today}
 
 \begin{document}
@@ -18,12 +46,17 @@
 
 \pagebreak
 
-This document assumes the following:
-\begin{itemize}
-	\item You have a Debian 8.3.0 system set up to run minecraft. 
-	\item You are setting up a modded minecraft survival server.
-	\item You have some command line experience.
-\end{itemize}
+\begin{mdframed}[style=Note, frametitle=Note: Document Use Case]
+	\begin{itemize}
+		\item You have a Debian 8.3.0 system set up to run minecraft. 
+		\item You are updating a modded minecraft survival server.
+		\item You have a small amount of command line experience.
+	\end{itemize}
+\end{mdframed}
+
+\begin{mdframed}[style=Note, frametitle=Note: oldserverpack and newserverpack]
+Oldserverpack and newserverpack are placeholder directory names for the pack you are updating. Oldserverpack is the version you are upgrading from and newserverpack is the version you are upgrading to.
+\end{mdframed}
 
 \chapter{Updating Your Modded Server}
 
@@ -36,133 +69,116 @@ The following commands will:
 	\item Set the minecraft user as the owner of the directory.
 \end{enumerate}
 
-\begin{verbatim}
-	sudo apt install unzip 
-	mv newserverpack.zip /opt/minecraft/
-	unzip /opt/minecraft/newserverpack.zip
-	sudo chown -R minecraft:minecraft opt/minecraft/newserverpack/
-\end{verbatim}
+\begin{mdframed}[style=Note]
+In order for the following command line arguments to work you must have a minecraft user with the home directory /opt/minecraft. If this is not the case, unzip newserverpack.zip into a subdirectory of /opt/minecraft. 
+	\begin{mdframed}[style=Code, frametitle=Command Line More Information on Unzip:]
+	\$ man unzip
+	\end{mdframed}
+\end{mdframed}
+
+\begin{mdframed}[style=Code]
+	\$ sudo apt install unzip\\
+	\$ mv newserverpack.zip /opt/minecraft/\\
+	\$ sudo su minecraft\\
+	\$ unzip newserverpack.zip ~-d ~.
+\end{mdframed}
 
 \section{Configure eula.txt}
 Open eula.txt and change "false" to "true" indicating you have read the Mojang End User License Agreement and agree to it. The server will not start if this is not set to true.
 
-\section{Delete session.lock}
-Delete the file oldserverpack/world/session.lock if it exists.
+\begin{mdframed}[style=Note, frametitle=Command Line Editor Note:]
+Vim Vi and nano are some of the more popular command line editors. I suggest using nano if you have not used a command line editor before, otherwise you probably have a preference.
+	\begin{mdframed}[style=Code]
+	\$ nano eula.txt
+	\end{mdframed}
+\end{mdframed}
 
+\section{Using a Fresh World or an Old World}
+\subsection{To Use Your Old World: Delete session.lock}
+Delete the file oldserverpack/world/session.lock if it exists. Then copy your world directory to the newserverpack directory.
+
+\begin{mdframed}[style=Note, frametitle=Note: session.lock]
 This file locks the world, preventing the server from starting up using this world. This file may not always exist. If it does not exist it will not cause a problem.
+\end{mdframed}
+
+\begin{mdframed}[style=Code]
+\$ rm oldserverpack/world/session.lock\\
+\end{mdframed}
+
+\subsection{To Generate A Fresh World}
+A fresh world will be automatically generated as long as there are not any of the required world files in the newserverpack/world folder or the /world folder itself does not exist.
 
 \section{Copy All Modified Directories and Files}
 Use the cp (copy) command to duplicate and place the old directories you wish to keep into the newserverpack.
 
-\textbf{Remember:} Tab completion works with the following commands.
+\begin{mdframed}[style=Note]
+If you want a fresh world for the update just leave "world" out of the second command above.
+\end{mdframed}
 
-\begin{verbatim}
-	cd /opt/minecraft/oldserverpack/
-	cp -tr ../newserverpack/ world backups server.properties
+\begin{mdframed}[style=Code]
+	\$ cd /opt/minecraft/oldserverpack/\\
+	\$ cp -tr ../newserverpack/ world backups server.properties
 	 banned-players.json banned-ips.json 
-\end{verbatim}
+\end{mdframed}
 
 \subsection{Copy Plugin Directories}
-\begin{verbatim}
-	cp -tr ../newserverpack/ luckperms/ nucleus/
-\end{verbatim}
+\begin{mdframed}[style=Code]
+	\$ cp -tr ../newserverpack/ luckperms/ nucleus/
+\end{mdframed}
 
 \subsection{Copy Plugin .jar Files}
 These .jar files will generate all of their configs if this is the first time adding them to the server.
 
-\subsubsection*{Move into the mods directory.}
+\begin{mdframed}[style=Code, frametitle=Move Current Directory]
+	\$ cd /opt/minecraft/oldserverpack/mods/
+\end{mdframed}
 
-\begin{verbatim}
-	cd /opt/minecraft/oldserverpack/mods/
-\end{verbatim}
+\begin{mdframed}[style=Code, frametitle=Generic Example]
+	\$ cp -tr ../../newserverpack/mods/ file1.jar file2.jar file3.jar 
+\end{mdframed}
 
-\subsubsection*{Generic Example:}
-
-\begin{verbatim}
-	cp -tr ../../newserverpack/mods/ file1.jar file2.jar file3.jar 
-\end{verbatim}
-
-\subsubsection*{Real Example:}
-
-\begin{verbatim}
-	cp -tr ../../rebirth_of_the_night/mods/ 0spongeforge-Version.jar
-	 CatClearLag-Version.jar FTBBackups-Version.jar griefprevention-Version.jar
-	 LuckPerms-Version.jar Nucleus-Version.jar TotalEconomy-Version.jar
-\end{verbatim}
+\begin{mdframed}[style=Code, frametitle=Real Example]
+	\$ cp -tr ../../rebirth\_of\_the\_night/mods/ ~0spongeforge-Version.jar\\
+	  ~CatClearLag-Version.jar ~FTBBackups-Version.jar\\
+	  ~griefprevention-Version.jar ~LuckPerms-Version.jar ~Nucleus-Version.jar\\ 			      ~TotalEconomy-Version.jar
+\end{mdframed}
 
 \subsection{Copy Plugin Configuration Files}
-We need these since we have edited them to suit our server and regenerating them based on the jar would revert them to default.
+We need these since we have edited them to suit our server and regenerating them based on the jar would revert them to default. If you have modified any of the mod configs move those as well.
 
-\subsubsection*{Move into the config directory.}
+\begin{mdframed}[style=Code, frametitle=Move Current Directory]
+	\$ cd /opt/minecraft/oldserverpack/config/
+\end{mdframed}
 
-\begin{verbatim}
-	cd /opt/minecraft/oldserverpack/config/
-\end{verbatim}
+\begin{mdframed}[style=Code, frametitle=Generic Example]
+	\$ cp -tr ../../newserverpack/config directory1/ config1.cfg directory2/
+\end{mdframed}
 
-\subsubsection*{Generic Example:}
-
-\begin{verbatim}
-	cp -tr ../../newserverpack/config directory1/ config1.cfg directory2/
-\end{verbatim}
-
-\subsubsection*{Real Example:}
-
-\begin{verbatim}
-	cp -tr ../../rebirth_of_the_night/config catclearlag/ ftbbackups.cfg
+\begin{mdframed}[style=Code, frametitle=Real Example]
+	\$ cp -tr ../../rebirth\_of\_the\_night/config catclearlag/ ftbbackups.cfg
 	 griefprevention/ luckperms/ nucleus/ sponge/ totaleconomy/
-\end{verbatim}
+\end{mdframed}
 
 \subsection{Update Plugins (optional)}
-Since most server packs do not come with their plugins pre-installed you will have to update them yourself. This step is not always necessary but can be helpful in avoiding bugs. Download the new version of the .jar and replace the old one in the newserverpack/mods directory. It is still recommended to copy over the configs as their use seldomly changes between plugin versions.
+Since most server packs do not come with their plugins pre-installed you will have to update them yourself. This step is not always necessary but can be helpful in avoiding bugs. Download the new version of the .jar and replace the old one in the newserverpack/mods directory. While you can still copy over your config files they may be incompatible with the new version where at best they will be ignored and a new one generated and at worst stop the server from starting up. Keep this in mind when updating your plugins.
 
 \subsection{Configure server.properties}
-Here is a link to the \href{https://minecraft.gamepedia.com/Server.properties}{minecraft wikipedia} (\url{https://minecraft.gamepedia.com/Server.properties}) page for the server.properties file. The key can be a great resource if you want to read up on specific options. Ideally nothing will need to change for a modpack update.
+Here is a link to the \href{https://minecraft.gamepedia.com/Server.properties}{minecraft wikipedia} (\url{https://minecraft.gamepedia.com/Server.properties}) page for the server.properties file. The key can be a great resource if you want to read up on specific options. Ideally one will not have to modify server.properties in order to update a modpack.
 
-\subsection{Configure configs}
-I have found config manipulation to be a big part of modded minecraft server management. Be familiar with the configs and spend some time looking through them. These vary so significantly by various modpack I cannot go into specifics in this document. Explore and do some tests.\\
+\subsection{Configure Configuration Files}
+Configuration file manipulation is an important skill of one wishes to delve into the realm of modded minecraft server management. Be familiar with the configs and spend some time looking through them. These vary significantly from modpack to modpack and can potentially drastically change the way the players interact with the world.\\
 
-\textbf{Note:} While you may be able to change these while the server is running, a server restart will be required before they take effect in game.
+\begin{mdframed}[style=Note]
+While you may be able to modify config files while the server is running, a server restart will be required before they take effect in game.
+\end{mdframed}
 
-\subsubsection{Create a new directory with the new files}
-Be sure not to just delete your old directory and throw the new one in, it is very likely we want to save some of the files.
-
-
+\pagebreak
 
 \subsection{How to view the minecraft terminal using screen}
-
-\begin{enumerate}
-	\item sudo su minecraft   (to enter the minecraft user)
-	\item screen -ls		  (list active screen IDNUMBERS and what they are linked to)
-	\item screen -r IDNUMBER  (connect to a screen)
-\end{enumerate}
- 
- 
-\subsection{If your IP address changes}
-
-sudo dig beartooth.bendy.cool
-
-sudo ddclient
-
-
-WORLD RESET
-Nucleus userdata Homes
-totaleconomy money
-griefprevention claims
-
-LAG FINDER
-/debug start
-wait time
-/debug stop
-
-sponge disable world
-
-/spawnpoint (playername)  (x, y, z)
-/give fergenbergel contenttweaker:spawn\_scroll
-
-
-
-\subsection{World Wipe}
-
-\subsection{No world wipe}
+\begin{mdframed}[style=Code]
+	\$ sudo su minecraft\\
+	\$ screen -ls\\
+	\$ screen -r IDNUMBER
+\end{mdframed}
 
 \end{document}
